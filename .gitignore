@@ -7,16 +7,18 @@ dist/
 build/
 .eggs/
 
-# Conda
+# Virtual environments (if someone uses venv instead of conda)
+venv/
+.venv/
 .conda/
 
-# Environment
-.env
+# Environment variables — NEVER commit secrets
+# The ** pattern matches .env in any subdirectory (root, backend/, etc.)
+**/.env
 *.env.local
 
-# Node
+# Node (for frontend in Phase 4)
 node_modules/
-dist/
 .npm
 
 # IDE
@@ -24,6 +26,7 @@ dist/
 .idea/
 *.swp
 *.swo
+.cursor/
 
 # Docker
 *.log
@@ -40,3 +43,7 @@ htmlcov/
 
 # Jupyter (if you use it)
 .ipynb_checkpoints/
+
+# Database files (if any SQLite is used for testing)
+*.db
+*.sqlite3
