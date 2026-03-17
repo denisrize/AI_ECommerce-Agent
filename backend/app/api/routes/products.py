@@ -11,7 +11,7 @@ from app.models.schemas import ProductCreate, ProductResponse
 router = APIRouter(prefix="/products", tags=["products"])
 
 
-@router.get("/", response_model=List[ProductResponse])
+@router.get("", response_model=List[ProductResponse])
 async def list_products(
     skip: int = 0,
     limit: int = 10,
@@ -87,7 +87,7 @@ async def get_product(product_id: str, db: AsyncSession = Depends(get_db)):
     return product
 
 
-@router.post("/", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
 async def create_product(product: ProductCreate, db: AsyncSession = Depends(get_db)):
     """Create a new product."""
     existing = await db.execute(

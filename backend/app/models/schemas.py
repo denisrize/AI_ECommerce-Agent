@@ -116,10 +116,6 @@ class OrderResponse(OrderBase):
     total_amount: Decimal
     created_at: datetime
 
-    """
-    The Config.from_attributes = True (Pydantic v2 way) tells Pydantic:
-    “You can build this schema directly from a SQLAlchemy model instance”
-    """
     class Config:
         from_attributes = True
 
@@ -132,3 +128,39 @@ class OrderWithItems(OrderResponse):
 class OrderDetail(OrderResponse):
     """Full detail with product info inside each item."""
     items: List[OrderItemWithProduct]
+
+
+# ══════════════════════════════════════════════════════════════
+# Chat Schemas
+# ══════════════════════════════════════════════════════════════
+# These define the HTTP interface for the chat endpoint.
+# Unlike the schemas above, they don't map to database tables —
+# they define the conversation protocol between client and agent.
+#
+# Kept here (not in chat.py) for consistency: all data contracts
+# live in one place. The orchestrator, routes, and tests can all
+# import from here.
+
+class Message(BaseModel):
+    """
+    A single message in the conversation.
+
+    The conversation is STATELESS on the server — the client sends
+    the FULL history every time. This means:
+      - No session storage needed on the backend
+      - The client controls the context window
+      - Easy to scale horizontally (any server can handle any request)
+    """
+    role: str   # "user" or "assistant"
+    content: str
+
+
+class ChatRequest(BaseModel):
+    messages: List[Message]
+    stream: bool = True               # SSE streaming by default
+    user_id: Optional[str] = None     # For future: personalized responses
+
+
+class ChatResponse(BaseModel):
+    """Used only for non-streaming responses (stream=false)."""
+    response: str

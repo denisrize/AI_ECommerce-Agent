@@ -25,7 +25,7 @@ def generate_order_number() -> str:
     return f"ORD-{datetime.now().strftime('%Y')}-{uuid.uuid4().hex[:5].upper()}"
 
 
-@router.get("/", response_model=List[OrderResponse])
+@router.get("", response_model=List[OrderResponse])
 async def list_orders(
     user_id: Optional[str] = None,
     status_filter: Optional[str] = None,
@@ -78,7 +78,7 @@ async def get_order(order_id: str, db: AsyncSession = Depends(get_db)):
     return order
 
 
-@router.post("/", response_model=OrderWithItems, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=OrderWithItems, status_code=status.HTTP_201_CREATED)
 async def create_order(order_data: OrderCreate, db: AsyncSession = Depends(get_db)):
     """
     Create a new order with items.

@@ -191,3 +191,29 @@ async def test_order_has_correct_totals(client: AsyncClient):
     assert abs(total - expected_total) < 0.01, (
         f"Total mismatch: {total} != {subtotal} + {shipping} - {discount}"
     )
+
+
+# ══════════════════════════════════════════════════════════════
+# Trailing Slash Handling
+# ══════════════════════════════════════════════════════════════
+
+@pytest.mark.asyncio
+async def test_trailing_slash_get(client: AsyncClient):
+    """Both /users and /users/ should return the same 200 response."""
+    without_slash = await client.get("/api/v1/users")
+    with_slash = await client.get("/api/v1/users/")
+
+    assert without_slash.status_code == 200
+    assert with_slash.status_code == 200
+    assert without_slash.json() == with_slash.json()
+
+
+@pytest.mark.asyncio
+async def test_trailing_slash_post(client: AsyncClient):
+    """POST to /chat/ should work the same as /chat (no redirect)."""
+    response = await client.post(
+        "/api/v1/chat/",
+        json={"messages": [], "stream": False},
+    )
+    # Should get 400 (empty messages), NOT 307 redirect
+    assert response.status_code == 400

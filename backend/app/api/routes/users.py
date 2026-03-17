@@ -11,7 +11,7 @@ from app.models.schemas import UserCreate, UserResponse
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.get("/", response_model=List[UserResponse])
+@router.get("", response_model=List[UserResponse])
 async def list_users(
     skip: int = 0,
     limit: int = 10,
@@ -43,7 +43,7 @@ async def get_user(user_id: str, db: AsyncSession = Depends(get_db)):
     return user
 
 
-@router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     """
     Create a new user.

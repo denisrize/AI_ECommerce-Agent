@@ -1,13 +1,39 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.api.routes import products, users, orders
+from app.api.routes import products, users, orders, chat
+
+
+# ── Trailing Slash Middleware ─────────────────────────────────
+# Problem: /api/v1/users and /api/v1/users/ are treated as
+# different URLs by default. FastAPI's built-in handling uses
+# a 307 redirect to send one to the other, but that causes
+# two issues:
+#
+# 1. POST/PUT redirects: Some HTTP clients drop the request
+#    body on redirect, causing silent failures.
+# 2. Extra round trip: The client makes two requests instead
+#    of one, adding latency.
+#
+# Solution: Strip trailing slashes BEFORE the request reaches
+# the router. Both URLs hit the same handler directly, no
+# redirect needed. We keep the root path "/" untouched so
+# the health/root endpoints still work.
+
+class TrailingSlashMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        # Strip trailing slash (but not from root "/")
+        if request.url.path != "/" and request.url.path.endswith("/"):
+            request.scope["path"] = request.url.path.rstrip("/")
+        return await call_next(request)
+
 
 app = FastAPI(
     title="E-commerce Agent API",
     description="AI-powered e-commerce operations assistant",
     version="0.1.0",
-    redirect_slashes=True,
+    redirect_slashes=False,  # Disable default 307 redirects
 )
 
 # ── CORS Middleware ────────────────────────────────────────────
@@ -25,6 +51,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(TrailingSlashMiddleware)
 
 # ── Routes ────────────────────────────────────────────────────
 # Each router handles a group of related endpoints.
@@ -34,6 +61,7 @@ app.add_middleware(
 app.include_router(users.router, prefix="/api/v1")
 app.include_router(products.router, prefix="/api/v1")
 app.include_router(orders.router, prefix="/api/v1")
+app.include_router(chat.router, prefix="/api/v1")
 
 
 @app.get("/")
